@@ -140,7 +140,7 @@ async function openAIDirectCapability(request, env, body, route) {
         finish_reason: result.finishReason || "stop",
       },
     ],
-    usage: usageFromText(payload.message || payload.prompt || "", result.text),
+    usage: usageFromText(payload.prompt || "", result.text),
     system_fingerprint: `unlimited-surf-worker:${route}`,
   });
 }
@@ -281,7 +281,7 @@ async function anthropicDirectCapability(request, env, body, route) {
     content: [{ type: "text", text: result.text }],
     stop_reason: anthropicStopReason(result.finishReason),
     stop_sequence: null,
-    usage: anthropicUsageFromText(payload.prompt || payload.query || "", result.text),
+    usage: anthropicUsageFromText(payload.prompt || "", result.text),
   });
 }
 
@@ -413,7 +413,7 @@ function buildAnthropicUnlimitedPayload(body, route) {
 
   const prompt = anthropicMessagesToText(body);
   const payload = {
-    message: prompt,
+    prompt: prompt,
     model: mapUpstreamModel(body.model),
     effort: body.effort || reasoningEffort(body),
   };
