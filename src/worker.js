@@ -140,7 +140,7 @@ async function openAIDirectCapability(request, env, body, route) {
         finish_reason: result.finishReason || "stop",
       },
     ],
-    usage: usageFromText(payload.message || payload.query || "", result.text),
+    usage: usageFromText(payload.message || payload.prompt || "", result.text),
     system_fingerprint: `unlimited-surf-worker:${route}`,
   });
 }
@@ -171,7 +171,7 @@ async function openAIChatCompletions(request, env, body) {
         finish_reason: result.finishReason || "stop",
       },
     ],
-    usage: usageFromText(payload.message || "", result.text),
+    usage: usageFromText(payload.prompt || "", result.text),
     system_fingerprint: "unlimited-surf-worker",
   });
 }
@@ -220,7 +220,7 @@ async function openAIResponses(request, env, body) {
     tools: body.tools || [],
     top_p: body.top_p || null,
     truncation: body.truncation || "disabled",
-    usage: responseUsageFromText(payload.message || "", result.text),
+    usage: responseUsageFromText(payload.prompt || "", result.text),
     user: body.user || null,
   });
 }
@@ -281,7 +281,7 @@ async function anthropicDirectCapability(request, env, body, route) {
     content: [{ type: "text", text: result.text }],
     stop_reason: anthropicStopReason(result.finishReason),
     stop_sequence: null,
-    usage: anthropicUsageFromText(payload.message || payload.query || "", result.text),
+    usage: anthropicUsageFromText(payload.prompt || payload.query || "", result.text),
   });
 }
 
@@ -305,7 +305,7 @@ async function anthropicMessages(request, env, body) {
     content: [{ type: "text", text: result.text }],
     stop_reason: anthropicStopReason(result.finishReason),
     stop_sequence: null,
-    usage: anthropicUsageFromText(payload.message || "", result.text),
+    usage: anthropicUsageFromText(payload.prompt || "", result.text),
   });
 }
 
@@ -382,15 +382,15 @@ function chooseUnlimitedRoute(body) {
 function buildUnlimitedPayload(body, route) {
   if (route === "/api/search") {
     return {
-      query: body.query || latestUserText(body.messages) || inputToText(body.input) || body.prompt || "",
+      prompt: body.query || latestUserText(body.messages) || inputToText(body.input) || body.prompt || "",
       model: mapUpstreamModel(body.model),
       effort: body.effort || reasoningEffort(body),
     };
   }
 
-  const message = body.message || messagesToText(body.messages) || inputToText(body.input) || body.prompt || "";
+  const promptText = body.message || messagesToText(body.messages) || inputToText(body.input) || body.prompt || "";
   const payload = {
-    message,
+    prompt: promptText,
     model: mapUpstreamModel(body.model),
     effort: body.effort || reasoningEffort(body),
   };
@@ -405,7 +405,7 @@ function buildUnlimitedPayload(body, route) {
 function buildAnthropicUnlimitedPayload(body, route) {
   if (route === "/api/search") {
     return {
-      query: latestUserText(body.messages) || body.query || "",
+      prompt: latestUserText(body.messages) || body.query || "",
       model: mapUpstreamModel(body.model),
       effort: body.effort || reasoningEffort(body),
     };
